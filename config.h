@@ -33,6 +33,7 @@ typedef struct {
 } config_t;
 
 
+config_t* config_new();
 int   config_read(config_t* cfg, const char *dir, const char *file);
 int   config_read_file(config_t* cfg, const char *path);
 int   config_read_fp(config_t* cfg, FILE *fp);

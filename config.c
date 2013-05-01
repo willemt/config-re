@@ -722,6 +722,11 @@ void config_free(config_t* cfg)
 	cfg->config = NULL;
 }
 
+config_t* config_new()
+{
+    return calloc(1,sizeof(config_t));
+}
+
 /*
 int main(int argc, char *argv[])
 {

@@ -53,6 +53,24 @@ int config_set(config_t* cfg, const char *key, const char *val)
 	return config_set_with_desc(cfg, key, val, NULL);
 }
 
+int config_set_if_not_set(config_t* cfg, const char *key, const char *val)
+{
+    if (!config_get(cfg,key))
+        return config_set_with_desc(cfg, key, val, NULL);
+    else return 0;
+}
+
+int config_set_va(config_t* cfg, const char *key, const char *val, ...)
+{
+    char buf[1024];
+    va_list args;
+
+    va_start(args, fmt);
+    vsprintf(buf, fmt, args);
+
+    return config_set(cfg, key, buf);
+}
+
 int config_set_with_desc(config_t* cfg, const char *key, const char *val, const char *desc)
 {
 	char *keybuf, *valbuf, *descbuf = NULL;

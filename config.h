@@ -44,6 +44,7 @@ int   config_set_va(config_t* cfg, const char *key, const char *val, ...);
 int   config_set_with_desc(config_t* cfg, const char *key, const char *val, const char *desc);
 void  config_lock(config_t* cfg, const char *key);
 char *config_get(config_t* cfg, const char *key);
+int   config_get_int(config_t* cfg, const char *key);
 void  config_print(config_t* cfg);
 void  config_free(config_t* cfg);
 int   config_get_default_path(config_t* cfg, char *buf, size_t n, const char *dir, const char *file);

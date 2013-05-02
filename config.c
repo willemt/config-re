@@ -65,8 +65,8 @@ int config_set_va(config_t* cfg, const char *key, const char *val, ...)
     char buf[1024];
     va_list args;
 
-    va_start(args, fmt);
-    vsprintf(buf, fmt, args);
+    va_start(args, val);
+    vsprintf(buf, val, args);
 
     return config_set(cfg, key, buf);
 }
@@ -81,7 +81,7 @@ int config_set_with_desc(config_t* cfg, const char *key, const char *val, const 
 	assert(val != NULL);
 
 	// check whether key already exists
-	n = list_get_first_node(&cfg->config);
+	n = list_get_first_node((node_l**)&cfg->config);
 	while (n != NULL) {
 		item = (configitem *)(n->data);
 		if (!strcmp(key, item->key)) {
@@ -89,7 +89,7 @@ int config_set_with_desc(config_t* cfg, const char *key, const char *val, const 
 			else break;
 		}
 
-		n = list_get_next_node(&cfg->config, n);
+		n = list_get_next_node((node_l**)&cfg->config, n);
 	}
 
 	if (n != NULL) {  // key already exists
@@ -137,7 +137,7 @@ int config_set_with_desc(config_t* cfg, const char *key, const char *val, const 
 		}
 
 		item->locked = 0;
-		list_prepend(&cfg->config, item);
+		list_prepend((node_l**)&cfg->config, item);
 	}
 
 	item->key = keybuf;
@@ -152,14 +152,14 @@ static node_l *search_node(config_t* cfg, const char *key)
 	node_l *n;
 	configitem *item;
 
-	n = list_get_first_node(&cfg->config);
+	n = list_get_first_node((node_l**)&cfg->config);
 
 	while (n != NULL) {
 		item = n->data;
 		if (!strcmp(key, item->key))
 			return n;
 
-		n = list_get_next_node(&cfg->config, n);
+		n = list_get_next_node((node_l**)&cfg->config, n);
 	}
 
 	return NULL;
@@ -189,6 +189,18 @@ char *config_get(config_t* cfg, const char *key)
 	}
 
 	return NULL;
+}
+
+int config_get_int(config_t* cfg, const char *key)
+{
+    char* val;
+
+    if ((val = config_get(cfg,key)))
+    {
+        return atoi(val);
+    }
+
+    return 0;
 }
 
 static int config_set_with_level(config_t* cfg, const char *level, const char *key, const char *val)
@@ -277,7 +289,7 @@ static char *addchar(char *str, int c)
 
 const char *config_strerror(config_t* cfg)
 {
-	return errmsg;
+	return cfg->errmsg;
 }
 
 static void config_set_strerror(config_t* cfg, char *fmt, ...)
@@ -285,10 +297,10 @@ static void config_set_strerror(config_t* cfg, char *fmt, ...)
         va_list argp;
 
         va_start(argp, fmt);
-        vsnprintf(errmsg, sizeof(errmsg), fmt, argp);
+        vsnprintf(cfg->errmsg, sizeof(cfg->errmsg), fmt, argp);
         va_end(argp);
 
-        errmsg[sizeof(errmsg) - 1] = '\0';
+        cfg->errmsg[sizeof(cfg->errmsg) - 1] = '\0';
 }
 
 static int filesize(config_t* cfg, FILE *fp)
@@ -327,10 +339,14 @@ int config_read_fp(config_t* cfg, FILE *fp)
 
 	fd = fileno(fp);
 	if (fd < 0) {
-		config_set_strerror("config_read_fp(): %s", strerror(errno));
+		config_set_strerror(cfg, "config_read_fp(): %s", strerror(errno));
 		return -1;
 	}
 
+#if __WINDOWS__
+        /* TODO: not supported on Windows */
+        return 0;
+#else
 	mem = mmap(0, size, PROT_READ, MAP_SHARED, fd, ftell(fp));
 	if (mem == MAP_FAILED) {
 		config_set_strerror(cfg, "config_read_fp(): %s", strerror(errno));
@@ -338,6 +354,7 @@ int config_read_fp(config_t* cfg, FILE *fp)
 	}
 
 	return config_read_mem(cfg, mem, size);
+#endif
 }
 
 int config_read_mem(config_t* cfg, char *mem, size_t n)
@@ -600,7 +617,7 @@ int config_write_file(config_t* cfg, const char *path)
 	node_l *n;
 
 	if((fp = fopen(path, "wb")) != NULL) {
-		n = list_get_first_node(&cfg->config);
+		n = list_get_first_node((node_l**)&cfg->config);
 
 		while (n != NULL) {
 			citem = (configitem *)n->data;
@@ -610,7 +627,7 @@ int config_write_file(config_t* cfg, const char *path)
 
 			fprintf(fp, "%s = %s\n", citem->key, citem->val!=NULL?citem->val:"");
 
-			n = list_get_next_node(&cfg->config, n);
+			n = list_get_next_node((node_l**)&cfg->config, n);
 		}
 	} else {
 		config_set_strerror(cfg,"%s: %s", path, strerror(errno));
@@ -657,13 +674,17 @@ static int mkdirs(const char *path, mode_t mode)
 		return -1;
 
 	str = path;
-	printf("path: %s\n", path);
+//	printf("path: %s\n", path);
 
 	while ((p = strchr(str, '/')) != NULL) {
 		if (p - str) {
 			strncpy(buf, path, p - path + 1);
 			buf[p - path + 1] = '\0';
+#if __WINDOWS__
+			if (mkdir(buf) < 0)
+#else
 			if (mkdir(buf, mode) < 0)
+#endif
 				if (errno != EEXIST)
 					return -1;
 		}
@@ -705,7 +726,7 @@ void config_print(config_t* cfg)
 	node_l *n;
 	configitem *item;
 
-	n = list_get_first_node(&cfg->config);
+	n = list_get_first_node((node_l**)&cfg->config);
 
 	while (n != NULL) {
 		item = n->data;
@@ -714,11 +735,11 @@ void config_print(config_t* cfg)
 			printf("\n; %s\n", item->desc);
 		printf("%s = \"%s\"\n", item->key, item->val);
 
-		n = list_get_next_node(&cfg->config, n);
+		n = list_get_next_node((node_l**)&cfg->config, n);
 	}
 }
 
-static void configitem_free(config_t* cfg, void *data)
+static void configitem_free(void *data)
 {
 	configitem *item = data;
 
@@ -735,8 +756,8 @@ void config_free(config_t* cfg)
 	if (cfg->config == NULL)
 		return;
 
-	list_foreach(&cfg->config, &cfg->configitem_free);
-	list_destroy(&cfg->config);
+	list_foreach((node_l**)&cfg->config, configitem_free);
+	list_destroy((node_l**)&cfg->config);
 	cfg->config = NULL;
 }
 

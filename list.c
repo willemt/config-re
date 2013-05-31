@@ -30,14 +30,12 @@
 #include <string.h>
 #include "list.h"
 
-
 node_l *list_get_first_node(node_l **list)
 {
 	assert(list != NULL);
 
 	return(*list);
 }
-
 
 node_l *list_get_last_node(node_l **list)
 {
@@ -49,7 +47,6 @@ node_l *list_get_last_node(node_l **list)
 		return((*list)->prev);
 	}
 }
-
 
 void *list_get_first(node_l **list)
 {

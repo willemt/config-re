@@ -182,6 +182,9 @@ char *config_get(config_t* cfg, const char *key)
 	node_l *n;
 	configitem *item;
 
+        if (!cfg)
+            return NULL;
+
 	n = search_node(cfg,key);
 	if (n != NULL) {
 		item = n->data;
@@ -194,6 +197,8 @@ char *config_get(config_t* cfg, const char *key)
 int config_get_int(config_t* cfg, const char *key)
 {
     char* val;
+
+    if (!cfg) return 0;
 
     if ((val = config_get(cfg,key)))
     {
@@ -763,7 +768,10 @@ void config_free(config_t* cfg)
 
 config_t* config_new()
 {
-    return calloc(1,sizeof(config_t));
+    config_t* cfg;
+    cfg = calloc(1,sizeof(config_t));
+//    cfg->config = list_alloc_node(NULL);
+    return cfg;
 }
 
 /*

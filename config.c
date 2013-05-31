@@ -33,7 +33,11 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-//#include <sys/mman.h>
+#if __WINDOWS__
+
+#else
+#include <sys/mman.h>
+#endif
 #include <unistd.h>
 #include "list.h"
 #include "config.h"

@@ -33,7 +33,7 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#if __WINDOWS__
+#if WIN32
 
 #else
 #include <sys/mman.h>
@@ -352,7 +352,7 @@ int config_read_fp(config_t* cfg, FILE *fp)
 		return -1;
 	}
 
-#if __WINDOWS__
+#if WIN32
         /* TODO: not supported on Windows */
         return 0;
 #else
@@ -689,7 +689,7 @@ static int mkdirs(const char *path, mode_t mode)
 		if (p - str) {
 			strncpy(buf, path, p - path + 1);
 			buf[p - path + 1] = '\0';
-#if __WINDOWS__
+#if WIN32
 			if (mkdir(buf) < 0)
 #else
 			if (mkdir(buf, mode) < 0)

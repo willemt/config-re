@@ -341,7 +341,6 @@ filesize_error:
 
 int config_read_fp(config_t* cfg, FILE *fp)
 {
-	void *mem;
 	int size, fd;
 
 	size = filesize(cfg,fp);

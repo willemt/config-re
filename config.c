@@ -355,6 +355,7 @@ int config_read_fp(config_t* cfg, FILE *fp)
         /* TODO: not supported on Windows */
         return 0;
 #else
+        void* mem;
 	mem = mmap(0, size, PROT_READ, MAP_SHARED, fd, ftell(fp));
 	if (mem == MAP_FAILED) {
 		config_set_strerror(cfg, "config_read_fp(): %s", strerror(errno));

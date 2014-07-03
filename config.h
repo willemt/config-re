@@ -27,6 +27,10 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+#ifndef BUFSIZ
+#define BUFSIZ 1024
+#endif  /* ! CONFIG_H */
+
 typedef struct {
     void *config;
     char errmsg[BUFSIZ];

@@ -27,6 +27,8 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+#include <stdio.h>
+
 #ifndef BUFSIZ
 #define BUFSIZ 1024
 #endif  /* ! CONFIG_H */
